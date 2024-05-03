@@ -1,54 +1,39 @@
 note this repo and article are WIP, don't read just yet, should be done in a few days
 
 
-# Chat server
-
-
-TODOS:
-- take gif of
-    - just chat
-    - /rooms
-    - /join rust
-    - /users
-    - /name RustyCrab
-    - 🦀🦀🦀
-    - /join stress-test
-    - /quit
-
-
-
-
 # Beginner's Guide to Concurrent Programming: Coding a Multithreaded Chat Server using Tokio
 
 _19 May 2024 · #rust · #async · #concurrency · #tokio · #tutorial_
 
-Table of contents
-- Introduction
-- 01\) Simplest possible echo server
-- 02\) Handling multiple connections serially
-- 03\) Modifying messages
-- 04\) Parsing a stream of bytes as lines
-- 05\) Adding `/help` & `/quit` server commands
-- 06\) Handling multiple connections concurrently
-- 07\) Letting users kinda chat
-- 08\) Letting users actually chat
-- 09\) Assigning names to users
-- 10\) Letting users edit their names with `/name`
-- 11\) Freeing name if user disconnects
-- 12\) Adding a main room
-- 13\) Letting users join or create rooms with `/join`
-- 14\) Listing all rooms with `/rooms`
-- 15\) Removing empty rooms
-- 16\) Listing users in room with `/users`
-- 17\) Optimizing performance
-- 18\) Finishing touches
-- Conclusion
-- Discuss
-- Further reading
+![chat server demo](./chat-server-demo.gif)
+
+**Table of contents**
+- [Introduction](#introduction)
+- [01\) Simplest possible echo server](#01-simplest-possible-echo-server)
+- [02\) Handling multiple connections serially](#02-handling-multiple-connections-serially)
+- [03\) Modifying messages](#03-modifying-messages)
+- [04\) Parsing a stream of bytes as lines](#04-parsing-a-stream-of-bytes-as-lines)
+- [05\) Adding `/help` & `/quit` server commands](#05-adding-help--quit-server-commands)
+- [06\) Handling multiple connections concurrently](#06-handling-multiple-connections-concurrently)
+- [07\) Letting users kinda chat](#07-letting-users-kinda-chat)
+- [08\) Letting users actually chat](#08-letting-users-actually-chat)
+- [09\) Assigning names to users](#09-assigning-names-to-users)
+- [10\) Letting users edit their names with `/name`](#10-letting-users-edit-their-names-with-name)
+- [11\) Freeing name if user disconnects](#11-freeing-users-name-if-they-disconnect)
+- [12\) Adding a main room](#12-adding-a-main-room)
+- [13\) Letting users join or create rooms with `/join`](#13-letting-users-join-or-create-rooms-with-join)
+- [14\) Listing all rooms with `/rooms`](#14-listing-all-rooms-with-rooms)
+- [15\) Removing empty rooms](#15-removing-empty-rooms)
+- [16\) Listing users in room with `/users`](#16-listing-users-in-the-room-with-users)
+- [17\) Optimizing performance](#17-optimizing-performance)
+- [18\) Finishing touches](#18-finishing-touches)
+- [Conclusion](#conclusion)
+- [Discuss](#discuss)
+- [Further reading](#further-reading)
 
 ## Introduction
 
-I recently finished coding a multithreaded chat server using Tokio and I'm pretty happy with it. I'd like to share what I learned in this easy-to-follow step-by-step tutorial-style article. So let's get into it.
+I recently finished coding a multithreaded chat server using Tokio and I'm pretty happy with it. I'd like to share what I learned in this easy-to-follow step-by-step tutorial-style article. All of the code can found in [this repository](https://github.com/pretzelhammer/chat-server). Let's get into it.
 
 ## 01\) Simplest possible echo server
 
@@ -148,8 +133,8 @@ We can connect to this server using a tool like `telnet` to see that it does in 
 
 ```console
 $ telnet 127.0.0.1 42069
-> my first e c h o server!
-my first e c h o server!
+> my first echo server!
+my first echo server!
 > hooray!
 hooray!
 ```
@@ -565,7 +550,7 @@ $ just telnet # concurrent client 2
 1: i am doing great ❤️
 ```
 
-It works! Anyway, celebrations aside, we need to talk about cancel safety. As mentioned before, Rust futures are lazy, and they only make progress while being polled. Polling is a little bit different than awaiting. To await a future means to poll it to completion. To poll a future is to give it a nudge like _"hey little buddy you can do it!"_ and then the future makes some progress, but it may not necessarily complete.
+It works! Anyway, celebrations aside, we need to talk about cancel safety. As mentioned before, Rust futures are lazy, and they only make progress while being polled. Polling is a little bit different than awaiting. To await a future means to poll it to completion. To poll a future is to give it a nudge like _"Hey little buddy you can do it!"_ and then the future makes some progress, but it may not necessarily complete.
 
 On one hand, this is great, because we start polling a future and later decide we don't need its result anymore, in which case we stop polling it and don't waste anymore CPU time on doing useless work. On the other hand, this may not be great if the future we're cancelling is in the middle of an important operation that if not completed may drop important data or may leave data in a corrupt state.
 
@@ -760,7 +745,7 @@ To pin something in Rust means to pin its location in memory. Once it is pinned 
 
 If that last part flew over your head don't worry, I don't fully get it either. But fear not, here's a general algorithm we can follow to solve these kinds of problems when they arise:
 
-1\) If we're writing generic code that takes a future or something that produces futures we can add `+ Unpin` to the trait bounds. So for example this doesn't compile:
+**1\)** If we're writing generic code that takes a future or something that produces futures we can add `+ Unpin` to the trait bounds. So for example this doesn't compile:
 
 ```rust
 use futures::{Stream, StreamExt};
@@ -806,7 +791,7 @@ async fn iterate<T>(mut items: impl Stream<Item = T> + Unpin) { // ✔️
 }
 ```
 
-2\) However, let's say that causes compile errors elsewhere in our code, because we actually are passing a stream to this function isn't `Unpin`. We can remove the `Unpin` from the function signature and use the `pin!` macro to pin the stream within the function:
+**2\)** However, let's say that causes compile errors elsewhere in our code, because we actually are passing a stream to this function isn't `Unpin`. We can remove the `Unpin` from the function signature and use the `pin!` macro to pin the stream within the function:
 
 ```rust
 async fn iterate<T>(mut items: impl Stream<Item = T>) {
@@ -819,7 +804,7 @@ async fn iterate<T>(mut items: impl Stream<Item = T>) {
 
 This pins it to the stack, so it cannot escape the current scope.
 
-3\) If the pinned object needs to escape the current scope there's `Box::pin` to pin it in the heap:
+**3\)** If the pinned object needs to escape the current scope there's `Box::pin` to pin it in the heap:
 
 ```rust
 async fn iterate<T>(mut items: impl Stream<Item = T>) {
@@ -830,7 +815,7 @@ async fn iterate<T>(mut items: impl Stream<Item = T>) {
 }
 ```
 
-4\) Or we can ask the caller to figure out this detail for us:
+**4\)** Or we can ask the caller to figure out this detail for us:
 
 ```rust
 async fn iterate<T, S: Stream<Item = T> + ?Sized>(mut items: Pin<&mut S>){
@@ -1030,7 +1015,7 @@ pretzelhammer: 🦀🦀🦀
 
 Now that we're using locks we should discuss how to avoid deadlocks. While Rust promises that compiling programs are memory-safe, it makes no such promise that they will be free of deadlocks, so that's something we as Rust programmers have to be careful to avoid on our own. Here's some general tips:
 
-1\) Don't hold locks across await points
+**1\)** Don't hold locks across await points
 
 An `await` point is anywhere in an async function where `await` is called. When we call `await` we yield control back to the Tokio scheduler. If our yielded future holds a lock that means any executing futures won't be able to acquire it, in which case they will block forever while waiting on it, and the yielded lock-holding future won't get an opportunity to run again, and so we have a deadlock.
 
@@ -1075,7 +1060,7 @@ It is true that tip #1 applies to sync mutexes, like `std::sync::Mutex`, but not
 
 So generally speaking, if we can structure our code never to hold a lock across an `await` point it's better to use a sync mutex, and only if we absolutely have to hold a lock across an `await` point would we switch to an async mutex.
 
-2\) Don't reaquire the same lock multiple times
+**2\)** Don't reaquire the same lock multiple times
 
 Trivial example:
 
@@ -1108,7 +1093,7 @@ And to quote the RwLock docs from the `parking_lot` crate:
 
 I guess we just have to be really careful 🤷
 
-3\) Aquire locks in the same order everywhere
+**3\)** Aquire locks in the same order everywhere
 
 If we need to acquire multiple locks to safely perform some operation, we need to always acquire those locks in the same order, otherwise deadlocks can trivially occur, like here:
 
@@ -1121,11 +1106,11 @@ let _b = b.lock();  |  let _a = a.lock();
 
 _"My head is spinning from all of these gotchas. Surely there has to be an easier or better way to do all of this locking stuff?"_
 
-4\) Use lockfree data structures
+**4\)** Use lockfree data structures
 
 Doing this allows you to disregard all the gotchas we covered in 1-3, since lockfree data structures cannot deadlock. However, in general, lockfree data structures are slower than most of their lock-based counterparts.
 
-5\) Use channels for everything
+**5\)** Use channels for everything
 
 Doing this also allows you to disregard all the gotchas we covered in 1-3, since channels cannot deadlock. I'm not well-read enough on this subject to comment on whether using channels for everything can degrade or improve the performance of a concurrent program vs using locks. I imagine the answer, like the answer to most computer science questions, is _"it depends."_
 

@@ -145,7 +145,7 @@ async fn main() -> Result<(), io::Error> {
     loop {
         let (tcp, addr) = server.accept().await?;
         let unique_name = names.get_unique(&mut name_generator);
-        tracing::trace!("{addr} connected, got name {unique_name}");
+        tracing::trace!("{addr} connected, name {unique_name}");
         tokio::spawn(handle_user(tcp, names.clone(), rooms.clone(), unique_name, addr));
     }
 }
@@ -338,7 +338,7 @@ async fn handle_user(
         }
     };
     let _ = room_tx.send(RoomMsg::Left(name.clone()));
-    tracing::trace!("{addr} disconnected, freeing name {name}");
+    tracing::trace!("{addr} disconnected, name {name}");
     rooms.leave(&room_name, &name);
     names.remove(&name);
     should_exit(exit_result);

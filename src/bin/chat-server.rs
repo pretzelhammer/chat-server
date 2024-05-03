@@ -94,6 +94,12 @@ impl Rooms {
         self.leave(prev_room, user_name);
         self.join(next_room, user_name)
     }
+    fn change_name(&self, room_name: &str, prev_name: &str, new_name: &str) {
+        if let Some(mut room) = self.0.get_mut(room_name) {
+            room.users.remove(prev_name);
+            room.users.insert(CompactString::from(new_name));
+        }
+    }
     fn list(&self) -> Vec<(CompactString, usize)> {
         let mut list: Vec<_> = self
             .0
@@ -224,6 +230,7 @@ async fn handle_user(
                     let new_name = CompactString::from(new_name.unwrap());
                     let changed_name = names.insert(new_name.clone());
                     if changed_name {
+                        rooms.change_name(&room_name, &name, &new_name);
                         let msg = format!("{name} is now {new_name}");
                         let msg: Arc<str> = Arc::from(msg.as_str());
                         let _ = room_tx.send(RoomMsg::Msg(msg));
@@ -277,6 +284,12 @@ async fn handle_user(
                     b!(sink.send(users_msg).await);
                 } else if user_msg.starts_with("/quit") {
                     break Ok(());
+                } else if user_msg.starts_with("/") {
+                    let unrecognized = user_msg
+                        .split_ascii_whitespace()
+                        .next()
+                        .unwrap();
+                    b!(sink.send(format!("Unrecognized command {unrecognized}, try /help")).await);
                 } else {
                     let msg = format!("{name}: {user_msg}");
                     let msg: Arc<str> = Arc::from(msg.as_str());
