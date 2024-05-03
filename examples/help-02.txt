@@ -1,0 +1,4 @@
+Server commands
+  /help - print this message
+  /name {name} - change name
+  /quit - quit server

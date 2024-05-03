@@ -1,0 +1,5 @@
+Server commands
+  /help - print this message
+  /name {name} - change name
+  /join {room} - join room
+  /quit - quit server

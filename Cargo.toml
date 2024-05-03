@@ -1,0 +1,31 @@
+[package]
+name = "chat-server"
+version = "1.0.0"
+edition = "2021"
+
+# https://nnethercote.github.io/perf-book/build-configuration.html
+[profile.release]
+codegen-units = 1
+lto = false
+
+[target.'cfg(not(target_env = "msvc"))'.dependencies]
+tikv-jemallocator = "0.5"
+
+[dependencies]
+tokio = { version = "1", features = ["full"] }
+tokio-util = { version = "0.7", features = ["codec"] }
+futures = "0.3.30"
+tokio-stream = "0.1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", default-features = true, features = ["env-filter", "parking_lot", "smallvec", "fmt", "tracing-log", "std", "ansi"] }
+tracing-appender = "0.2.3"
+fastrand = "2.0.1"
+dashmap = "5.5.3"
+anyhow = "1.0.82"
+ratatui = "0.26.1"
+crossterm = { version = "0.27.0", features = ["event-stream"] }
+tui-textarea = "0.4.0"
+textwrap = "0.16"
+compact_str = "0.7.1"
+clap = { version = "4.5.4", features = ["derive"] }
+clap_derive = "4.5.4"
