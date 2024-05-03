@@ -7,29 +7,29 @@ _19 May 2024 · #rust · #async · #concurrency · #tokio · #tutorial_
 
 ![chat server demo](./chat-server-demo.gif)
 
-**Table of contents**
-- [Introduction](#introduction)
-- [01\) Simplest possible echo server](#01-simplest-possible-echo-server)
-- [02\) Handling multiple connections serially](#02-handling-multiple-connections-serially)
-- [03\) Modifying messages](#03-modifying-messages)
-- [04\) Parsing a stream of bytes as lines](#04-parsing-a-stream-of-bytes-as-lines)
-- [05\) Adding `/help` & `/quit` server commands](#05-adding-help--quit-server-commands)
-- [06\) Handling multiple connections concurrently](#06-handling-multiple-connections-concurrently)
-- [07\) Letting users kinda chat](#07-letting-users-kinda-chat)
-- [08\) Letting users actually chat](#08-letting-users-actually-chat)
-- [09\) Assigning names to users](#09-assigning-names-to-users)
-- [10\) Letting users edit their names with `/name`](#10-letting-users-edit-their-names-with-name)
-- [11\) Freeing name if user disconnects](#11-freeing-users-name-if-they-disconnect)
-- [12\) Adding a main room](#12-adding-a-main-room)
-- [13\) Letting users join or create rooms with `/join`](#13-letting-users-join-or-create-rooms-with-join)
-- [14\) Listing all rooms with `/rooms`](#14-listing-all-rooms-with-rooms)
-- [15\) Removing empty rooms](#15-removing-empty-rooms)
-- [16\) Listing users in room with `/users`](#16-listing-users-in-the-room-with-users)
-- [17\) Optimizing performance](#17-optimizing-performance)
-- [18\) Finishing touches](#18-finishing-touches)
-- [Conclusion](#conclusion)
-- [Discuss](#discuss)
-- [Further reading](#further-reading)
+**Table of contents**<br>
+[Introduction](#introduction)<br>
+[01\) Simplest possible echo server](#01-simplest-possible-echo-server)<br>
+[02\) Handling multiple connections serially](#02-handling-multiple-connections-serially)<br>
+[03\) Modifying messages](#03-modifying-messages)<br>
+[04\) Parsing a stream of bytes as lines](#04-parsing-a-stream-of-bytes-as-lines)<br>
+[05\) Adding `/help` & `/quit` server commands](#05-adding-help--quit-server-commands)<br>
+[06\) Handling multiple connections concurrently](#06-handling-multiple-connections-concurrently)<br>
+[07\) Letting users kinda chat](#07-letting-users-kinda-chat)<br>
+[08\) Letting users actually chat](#08-letting-users-actually-chat)<br>
+[09\) Assigning names to users](#09-assigning-names-to-users)<br>
+[10\) Letting users edit their names with `/name`](#10-letting-users-edit-their-names-with-name)<br>
+[11\) Freeing user's name if they disconnect](#11-freeing-users-name-if-they-disconnect)<br>
+[12\) Adding a main room](#12-adding-a-main-room)<br>
+[13\) Letting users join or create rooms with `/join`](#13-letting-users-join-or-create-rooms-with-join)<br>
+[14\) Listing all rooms with `/rooms`](#14-listing-all-rooms-with-rooms)<br>
+[15\) Removing empty rooms](#15-removing-empty-rooms)<br>
+[16\) Listing users in the room with `/users`](#16-listing-users-in-the-room-with-users)<br>
+[17\) Optimizing performance](#17-optimizing-performance)<br>
+[18\) Finishing touches](#18-finishing-touches)<br>
+[Conclusion](#conclusion)<br>
+[Discuss](#discuss)<br>
+[Further reading](#further-reading)<br>
 
 ## Introduction
 
@@ -133,8 +133,8 @@ We can connect to this server using a tool like `telnet` to see that it does in 
 
 ```console
 $ telnet 127.0.0.1 42069
-> my first echo server!
-my first echo server!
+> my first e c h o server!
+my first e c h o server!
 > hooray!
 hooray!
 ```
