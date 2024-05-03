@@ -1,8 +1,8 @@
+note this repo and article are WIP, don't read just yet, should be done in a few days
+
+
 # Chat server
 
-Companion code repository for the article Coding a Scalable TCP Chat Server with Rust.
-
-Warning: This code is production ready!
 
 TODOS:
 - take gif of
