@@ -5,10 +5,10 @@ use tokio::{net::{TcpListener, TcpStream}, sync::broadcast::{self, Sender}};
 use tokio_util::codec::{FramedRead, FramedWrite, LinesCodec};
 
 #[path ="shared/lib.rs"]
-mod shared;
-use shared::{b, random_name};
+mod lib;
+use lib::{b, random_name};
 
-const HELP_MSG: &str = include_str!("help-02.txt");
+const HELP_MSG: &str = include_str!("shared/help-02.txt");
 
 #[derive(Clone)]
 struct Names(Arc<Mutex<HashSet<String>>>);

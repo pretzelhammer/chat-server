@@ -15,11 +15,11 @@ use tikv_jemallocator::Jemalloc;
 static GLOBAL: Jemalloc = Jemalloc;
 
 #[path ="shared/lib.rs"]
-mod shared;
-use shared::{b, NameGenerator, parse_socket_addr, setup_logging, valid_name};
+mod lib;
+use lib::{b, NameGenerator, parse_socket_addr, setup_logging, valid_name};
 
 const MAIN: &str = "main";
-const HELP_MSG: &str = include_str!("help-05.txt");
+const HELP_MSG: &str = include_str!("shared/help-05.txt");
 const MAX_MSG_LEN: usize = 400;
 const ROOM_CHANNEL_CAPACITY: usize = 1024;
 

@@ -780,7 +780,7 @@ async fn iterate<T>(mut items: impl Stream<Item = T> + Unpin) { // ✔️
 }
 ```
 
-**2\)** However, let's say that causes compile errors elsewhere in our code, because we actually are passing a stream to this function isn't `Unpin`. We can remove the `Unpin` from the function signature and use the `pin!` macro to pin the stream within the function:
+**2\)** However, let's say that causes compile errors elsewhere in our code, because we are passing a stream to this function isn't `Unpin`. We can remove the `Unpin` from the function signature and use the `pin!` macro to pin the stream within the function:
 
 ```rust
 async fn iterate<T>(mut items: impl Stream<Item = T>) {
@@ -1045,7 +1045,7 @@ Tokio scheduler, future queue:
 +---------+---------+---------+
 |  fut B  |  fut C  |  fut A* |
 +---------+---------+---------+
-* holding mutex lock
+* holding lock
 ```
 
 Then Tokio tries to poll the next future, future B, and that future runs through the same code path, trying to acquire a lock to the same mutex that future A is currently holding! It will block forever! Future B cannot make progress until future A releases the lock, but future A cannot release the lock until future B yields back to the scheduler. We have a deadlock.
@@ -1110,11 +1110,11 @@ _"My head is spinning from all of these gotchas. Surely there has to be an easie
 
 **4\)** Use lockfree data structures
 
-Doing this allows you to disregard all the gotchas we covered in 1-3, since lockfree data structures cannot deadlock. However, in general, lockfree data structures are slower than most of their lock-based counterparts.
+Doing this allows you to disregard tips 1-3, since lockfree data structures cannot deadlock. However, in general, lockfree data structures are slower than most of their lock-based counterparts.
 
 **5\)** Use channels for everything
 
-Doing this also allows you to disregard all the gotchas we covered in 1-3, since channels cannot deadlock. I'm not well-read enough on this subject to comment on whether using channels for everything can degrade or improve the performance of a concurrent program vs using locks. I imagine the answer, like the answer to most computer science questions, is _"it depends."_
+Doing this also allows you to disregard tips 1-3, since channels cannot deadlock. I'm not well-read enough on this subject to comment on whether using channels for everything can degrade or improve the performance of a concurrent program vs using locks. I imagine the answer, like the answer to most computer science questions, is _"it depends."_
 
 > [!TIP]
 > This approach is also sometimes called the "actor pattern" and if you search for "actor" on cargo you'll find a lot of actor framework crates that supposedly help with structuring your program to follow this pattern.

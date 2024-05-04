@@ -187,7 +187,7 @@ async fn main() -> anyhow::Result<()> {
         Err(err) => {
             match err.kind() {
                 std::io::ErrorKind::ConnectionRefused => {
-                    tracing::error!("{}", connection_refused(addr));
+                    println!("{}", connection_refused(addr));
                     std::process::exit(1)
                 }
                 // got unexpected err, re-throw

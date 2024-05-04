@@ -13,11 +13,11 @@ use tikv_jemallocator::Jemalloc;
 static GLOBAL: Jemalloc = Jemalloc;
 
 #[path ="shared/lib.rs"]
-mod shared;
-use shared::{b, NameGenerator};
+mod lib;
+use lib::{b, NameGenerator};
 
 const MAIN: &str = "main";
-const HELP_MSG: &str = include_str!("help-05.txt");
+const HELP_MSG: &str = include_str!("shared/help-05.txt");
 
 #[derive(Clone)]
 #[repr(transparent)]
