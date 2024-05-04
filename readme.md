@@ -1,5 +1,7 @@
 # Chat server
 
+![chat server demo](./chat-server-demo.gif)
+
 This is the companion code repository for the article [Beginner's Guide to Concurrent Programming: Coding a Multithreaded Chat Server using Tokio](https://github.com/pretzelhammer/rust-blog/blob/master/posts/chat-server.md).
 
 You can find the full source code for any example from the article in the [examples directory](https://github.com/pretzelhammer/chat-server/tree/main/examples).
