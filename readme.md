@@ -109,7 +109,8 @@ In this line we're binding a TCP listener:
 let server = TcpListener::bind("127.0.0.1:42069").await?;
 ```
 
-Important to note that this is `tokio::net::TcpListener` and not `std::net::TcpListener`. The former is async and the latter is sync.
+> [!IMPORTANT]
+> This is `tokio::net::TcpListener` and not a `std::net::TcpListener`. The former is async and the latter is sync.
 
 As a general rule of thumb, if there's a type defined both in `tokio` and `std` we want to use the one defined in `tokio`. Also important to note that since calling `bind` returns a `Future` we need to `await` it for anything to happen because futures are lazy in Rust! It's okay if you forget sometimes because in most cases rust-analyzer can detect an un-`await`-ed `Future` and will warn you.
 
