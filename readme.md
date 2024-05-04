@@ -7,7 +7,10 @@ _19 May 2024 · #rust · #async · #concurrency · #tokio · #tutorial_
 
 ![chat server demo](./chat-server-demo.gif)
 
-**Table of contents**<br>
+<details>
+<summary><b>Table of contents</b></summary>
+
+
 [Introduction](#introduction)<br>
 [01\) Simplest possible echo server](#01-simplest-possible-echo-server)<br>
 [02\) Handling multiple connections serially](#02-handling-multiple-connections-serially)<br>
@@ -30,6 +33,9 @@ _19 May 2024 · #rust · #async · #concurrency · #tokio · #tutorial_
 [Conclusion](#conclusion)<br>
 [Discuss](#discuss)<br>
 [Further reading](#further-reading)<br>
+
+
+</details>
 
 ## Introduction
 
@@ -110,9 +116,9 @@ let server = TcpListener::bind("127.0.0.1:42069").await?;
 ```
 
 > [!IMPORTANT]
-> This is `tokio::net::TcpListener` and not a `std::net::TcpListener`. The former is async and the latter is sync.
+> This is `tokio::net::TcpListener` and not `std::net::TcpListener`. The former is async and the latter is sync. Also calling `bind` returns a `Future` to `await` for anything to happen because futures are lazy in Rust!
 
-As a general rule of thumb, if there's a type defined both in `tokio` and `std` we want to use the one defined in `tokio`. Also important to note that since calling `bind` returns a `Future` we need to `await` it for anything to happen because futures are lazy in Rust! It's okay if you forget sometimes because in most cases rust-analyzer can detect an un-`await`-ed `Future` and will warn you.
+As a general rule of thumb, if there's a type defined both in `tokio` and `std` we usually want to use the one defined in `tokio`.
 
 The rest of the code should hopefully be straight-forward:
 
@@ -140,7 +146,7 @@ my first e c h o server!
 hooray!
 ```
 
-Some of you may be thinking, _"I'd like to mess around with the code but I don't want to go through the hassle of setting up a new cargo project and then copying and pasting all of the examples from this article into it."_ You don't have to! Just `git clone` [this repo](https://github.com/pretzelhammer/chat-server) and you'll be able to quickly run any example with `just example {number}`. Then you can tinker with the source code at `examples/server-{number}.rs` to your heart's content. Once an example is running you can connect to interact with it by running `just telnet`.
+Some of you may be thinking, _"I'd like to mess around with the code but I don't want to go through the hassle of setting up a new cargo project and then copying and pasting all of the examples from this article into it."_ You don't have to! Just `git clone` [this repository](https://github.com/pretzelhammer/chat-server) and you'll be able to quickly run any example with `just example {number}`. Then you can tinker with the source code at `examples/server-{number}.rs` to your heart's content. Once an example is running you can interact with it by running `just telnet`.
 
 ## 02\) Handling multiple connections serially
 
@@ -246,9 +252,11 @@ async fn main() -> anyhow::Result<()> {
 }
 ```
 
-There's a lot of new stuff in this example so let's go over it. The `tcp.split()` splits a `TcpStream` into a `ReadHalf` and `WriteHalf`. This is useful if we want to add these halves to different structs, or send them to different threads, or read and write to the same `TcpStream` concurrently (which we'll be doing later).
+There's a lot of new stuff in this example so let's go over it. The `split` method splits a `TcpStream` into a `ReadHalf` and `WriteHalf`. This is useful if we want to add these halves to different structs, or send them to different threads, or read and write to the same `TcpStream` concurrently (which we'll be doing later).
 
-`LinesCodec` handles the low-level details of converting a stream of bytes into a stream of UTF-8 strings delimited by newlines, and together with `FramedRead` we can wrap `ReadHalf` to get an impl of `Stream<Item = Result<String, _>>`, which is much easier to work with than an `AsyncRead`. A `Steam` is like the async version of an `Iterator`. For example, if we had a sync function like this:
+`ReadHalf` implements `AsyncRead` and `WriteHalf` implements `AsyncWrite`, however as mentionedly previously, these can be tedious and error-prone to work with directly, which why we bring in `LinesCodec`, `FramedRead`, and `FramedWrite`.
+
+`LinesCodec` handles the low-level details of converting a stream of bytes into a stream of UTF-8 strings delimited by newlines, and using it together with `FramedRead` we can wrap a `ReadHalf` to get an implementation of `Stream<Item = Result<String, _>>`, which is much easier to work with than an `AsyncRead`. A `Steam` is like the async version of an `Iterator`. For example, if we had a sync function like this:
 
 ```rust
 fn iterate<T>(items: impl Iterator<Item = T>) {
@@ -270,7 +278,7 @@ async fn iterate<T>(mut items: impl Stream<Item = T> + Unpin) {
 }
 ```
 
-We also use `LinesCodec` and `FramedWrite` to wrap `WriteHalf` to get an impl of `Sink<String, Error = _>`, which is much easier to work with than an `AsyncWrite`. As you've probably guessed, a `Sink` is the opposite of a `Stream`, it consumes values instead of producing values.
+We also use `LinesCodec` together with `FramedWrite` to wrap a `WriteHalf` to get an implementation of `Sink<String, Error = _>`, which is much easier to work with than an `AsyncWrite`. As you've probably guessed, a `Sink` is the opposite of a `Stream`, it consumes values instead of producing values.
 
 The rest of the code is straight-forward:
 
@@ -440,7 +448,7 @@ async fn handle_user(mut tcp: TcpStream, tx: Sender<String>) -> anyhow::Result<(
 }
 ```
 
-The code is starting to get long and finding the new stuff in the updated examples is starting to get difficult. For all following examples I will only present a heavily abbreviated diff highlighting the key changes, but you can still find the full source code for any example in [this directory](https://github.com/pretzelhammer/chat-server/tree/main/examples) of the [companion code repository](https://github.com/pretzelhammer/chat-server) for this article. You can also see a diff between any two examples by running `just diff {num} {num}`. For instance, to see the diff between this step and the previous step you would run `just diff 06 07`.
+The code is starting to get long and finding the new stuff in the updated examples is starting to get difficult. For all following examples I will only present a heavily abbreviated diff highlighting the key changes, but you can still find the full source code for any example in [this directory](https://github.com/pretzelhammer/chat-server/tree/main/examples) of [this repository](https://github.com/pretzelhammer/chat-server). You can also see a diff between any two examples by running `just diff {num} {num}`. For instance, to see the diff between this example and the previous example you would run `just diff 06 07`.
 
 Anyway, as promised, the heavily abbreviated key changes:
 
@@ -467,9 +475,9 @@ async fn handle_user(mut tcp: TcpStream, tx: Sender<String>) -> anyhow::Result<(
 }
 ```
 
-We communicate between different clients using a broadcast channel. After creating the channel we get a `Sender` and a `Receiver` which we can `clone` any number of times and send to different threads. We can also get a `Receiver` by calling `subscribe` on a `Sender`. Each value sent via a `Sender` gets received by every `Receiver`, so the value type must implement `Clone`.
+We communicate between different clients using a broadcast channel. After creating the channel we get a `Sender` and a `Receiver` which we can `clone` any number of times and send to different threads. Each value sent via a `Sender` gets received by every `Receiver`, so the value type must implement `Clone`.
 
-Before we would get a message from the client's stream and immediately echo it out to the client's sink. Now when we get a message from the client's stream we send pass it through the broadcast channel before we get it back and send it to the client's sink. Every client will receive their own and others messages from the channel.
+Before we would get a message from the client's stream and immediately echo it out to the client's sink. Now when we get a message from the client's stream we send pass it through the broadcast channel before we get it back and then send it to the client's sink. Every client will receive their own and others' messages from the channel.
 
 Let's try out our new code by connecting with two clients at once:
 
@@ -500,7 +508,7 @@ The bug in our code is here:
 while let Some(Ok(mut user_msg)) = stream.next().await {
     // in order to receive a message
     let peer_msg = rx.recv().await?;
-    // and these two things must always alternate
+    // and these two things always alternate
 }
 ```
 
@@ -510,7 +518,10 @@ To solve this problem we need to be able to `await` two futures at once. In this
 
 ## 08\) Letting users actually chat
 
-`tokio::select!` to the rescue:
+`tokio::select!` to the rescue!
+
+> [!TIP]
+> `tokio::select!` allows us to poll multiple futures at once.
 
 ```rust
 async fn handle_user(mut tcp: TcpStream, tx: Sender<String>) -> anyhow::Result<()> {
@@ -553,7 +564,7 @@ $ just telnet # concurrent client 2
 
 It works! Anyway, celebrations aside, we need to talk about cancel safety. As mentioned before, Rust futures are lazy, and they only make progress while being polled. Polling is a little bit different than awaiting. To await a future means to poll it to completion. To poll a future is to give it a nudge like _"Hey little buddy you can do it!"_ and then the future makes some progress, but it may not necessarily complete.
 
-On one hand, this is great, because we start polling a future and later decide we don't need its result anymore, in which case we stop polling it and don't waste anymore CPU time on doing useless work. On the other hand, this may not be great if the future we're cancelling is in the middle of an important operation that if not completed may drop important data or may leave data in a corrupt state.
+On one hand, this is great, because if we start polling a future and later decide we don't need its result anymore, we can stop polling it and we won't waste anymore CPU on doing useless work. On the other hand, this may not be so great if the future we're cancelling is in the middle of an important operation that if not completed may drop important data or may leave data in a corrupt state.
 
 Let's look at an example of "cancelling" a future. Cancelling is in quotes because it's not an explicit operation, it just means we started to poll a future, but then stopped polling it before it completed, and then dropped it.
 
@@ -637,16 +648,6 @@ Throws:
 
 ```
 error[E0382]: use of moved value: `count_to_10`
-  --> src/main.rs:44:5
-   |
-33 |     let count_to_10 = count_to(10);
-   |         ----------- move occurs because `count_to_10` has type `impl futures::Future<Output = ()>`, which does not implement the `Copy` trait
-...
-38 |         _ = count_to_10 => {
-   |             ----------- value moved here
-...
-44 |     count_to_10.await;
-   |     ^^^^^^^^^^^ value used here after move
 ```
 
 Oh duh, we made the simplest mistake in the book, trying to use a value after we moved it. Let's pass a mutable reference instead:
@@ -762,24 +763,6 @@ Throws:
 
 ```
 error[E0277]: `impl Stream<Item = T>` cannot be unpinned
-   --> src/main.rs:5:34
-    |
-5   |     while let Some(item) = items.next().await {
-    |                                  ^^^^ the trait `Unpin` is not implemented for `impl Stream<Item = T>`
-    |
-    = note: consider using the `pin!` macro
-            consider using `Box::pin` if you need to access the pinned value outside of the current scope
-note: required by a bound in `futures::StreamExt::next`
-    |
-273 |     fn next(&mut self) -> Next<'_, Self>
-    |        ---- required by a bound in this associated function
-274 |     where
-275 |         Self: Unpin,
-    |               ^^^^^ required by this bound in `StreamExt::next`
-help: consider further restricting this bound
-    |
-4   | async fn iterate<T>(mut items: impl Stream<Item = T> + std::marker::Unpin) {
-    |                                                      ++++++++++++++++++++
 ```
 
 But if we sprinkle `Unpin` into the function signature it works:
@@ -826,7 +809,10 @@ async fn iterate<T, S: Stream<Item = T> + ?Sized>(mut items: Pin<&mut S>){
 }
 ```
 
-However in this case the caller is also us, so this doesn't help that much over solutions 2 & 3. But anyway, let's get back to cancellation. The key thing you should take away from this section is that we need to be mindful of which futures are cancel-safe and which are not when we pass them to functions or macros like `tokio::select!` which, by design, won't poll all of the futures to completion. If you're writing a Rust library that exports async functions or futures you should document which are and are not cancel-safe. If you're passing your own futures to some async library or framework you should either make all of your futures cancel-safe or carefully read the docs of the library or framework you're using to know if it may or may not cancel your futures.
+However in this case the caller is also us, so this doesn't help that much over solutions 2 & 3.
+
+> [!IMPORTANT]
+> In summary: we need to be mindful which futures are and aren't cancel-safe when we pass them to code that may not poll them to completion, e.g. `tokio::select!`. If you're writing a Rust library that polls futures you need to document if your library will poll the futures to completion or not. If you're writing a Rust library that produces futures you need to document which of the futures are and aren't cancel-safe. If you're using a Rust library that either polls or returns futures you need to carefully read its docs.
 
 ## 09\) Assigning names to users
 
@@ -880,13 +866,11 @@ DapperPeacock
 PlasticCentaur
 BubblyChicken
 AnxiousGriffin
-QuirkyToad
 SpicyAlpaca
 MindlessOctopus
 WealthyPelican
 CruelCapybara
 RegalFrog
-WigglyViper
 PinkPoodle
 QuirkyGazelle
 PoshGopher
@@ -894,7 +878,6 @@ CarelessBobcat
 SomberWeasel
 ZenMammoth
 DazzlingSquid
-WildMinotaur
 ```
 
 To keep our main file clean and concise, let's put this functionality into our lib file and import it:
@@ -932,7 +915,12 @@ Excellent. Also, I switched from using `just telnet` to `just chat` because I go
 
 ## 10\) Letting users edit their names with `/name`
 
-We'd like names to be unique across the server. We can enforce this by maintaining the names in a `HashSet<String>`. However, since we'd also like to let users edit their names using the `/name` command we need to share this set between users running in different threads. To share mutable data across many threads we can wrap it with `Arc<Mutex<T>>`, which is like the thread-safe version of `Rc<RefCell<T>>` if you've ever used that before. Let's wrap our `Arc<Mutex<HashSet<T>>>` in a new type to make working with it more ergonomic:
+We'd like names to be unique across the server. We can enforce this by maintaining the names in a `HashSet<String>`. However, since we'd also like to let users edit their names using the `/name` command we need to share this set between users running in different threads.
+
+> [!TIP]
+> To share mutable data across many threads we can wrap it with `Arc<Mutex<T>>`, which is like the thread-safe version of `Rc<RefCell<T>>` if you've ever used that before.
+
+Let's wrap our `Arc<Mutex<HashSet<T>>>` in a new type to make working with it more ergonomic:
 
 ```rust
 // ...
@@ -1014,7 +1002,10 @@ FancyYak is now pretzelhammer
 pretzelhammer: 🦀🦀🦀
 ```
 
-Now that we're using locks we should discuss how to avoid deadlocks. While Rust promises that compiling programs are memory-safe, it makes no such promise that they will be free of deadlocks, so that's something we as Rust programmers have to be careful to avoid on our own. Here's some general tips:
+> [!CAUTION]
+> Rust promises that compiling safe programs are free of memory vulnerabilities, but it makes no promises that they will be free of deadlocks. When we add locks to our program we need to be careful to avoid creating deadlock scenarios.
+
+Here's some tips for avoiding deadlocks:
 
 **1\)** Don't hold locks across await points
 
@@ -1033,8 +1024,11 @@ Since this is a single-threaded runtime we can only execute one future at a time
 
 ```rust
 async do_stuff<T: Debug>(mutex: Mutex<T>) {
+    // acquires lock
     let guard = mutex.lock().unwrap();
+    // hits await point, i.e. yields to scheduler
     other_async_fn().await?;
+    // releases lock
     dbg!(guard);
 }
 ```
@@ -1053,13 +1047,13 @@ Then Tokio tries to poll the next future, future B, and that future runs through
 
 _"But what if we use an async mutex instead of a sync mutex?"_
 
-It is true that tip #1 applies to sync mutexes, like `std::sync::Mutex`, but not to async mutexes, like `tokio::sync::Mutex`. For mutexes designed to be used in an async context, we can hold their locks across `await` points, however they are slower. To quote the Tokio docs:
+It is true that tip 1 applies to sync mutexes, like `std::sync::Mutex`, but not to async mutexes, like `tokio::sync::Mutex`. For mutexes designed to be used in an async context, we can hold their locks across `await` points, however they are slower. To quote the Tokio docs:
 
 > Contrary to popular belief, it is ok and often preferred to use the ordinary Mutex from the standard library in asynchronous code.
 >
 > The feature that the async mutex offers over the blocking mutex is the ability to keep it locked across an await point. This makes the async mutex more expensive than the blocking mutex, so the blocking mutex should be preferred in the cases where it can be used. The primary use case for the async mutex is to provide shared mutable access to IO resources such as a database connection. If the value behind the mutex is just data, it's usually appropriate to use a blocking mutex such as the one in the standard library.
 
-So generally speaking, if we can structure our code never to hold a lock across an `await` point it's better to use a sync mutex, and only if we absolutely have to hold a lock across an `await` point would we switch to an async mutex.
+Generally speaking, if we can structure our code to never to hold a lock across an `await` point it's better to use a sync mutex, and if we absolutely have to hold a lock across an `await` point then we would switch to an async mutex.
 
 **2\)** Don't reaquire the same lock multiple times
 
@@ -1068,16 +1062,18 @@ Trivial example:
 ```rust
 fn main() {
    let mut mutex = Mutex::new(5);
+   // acquire lock
    let g = mutex.lock().unwrap();
+   // try to acquire lock again
    mutex.lock().unwrap(); // deadlocks
 }
 ```
 
 Although the mistake is super obvious in the example above when it happens in Real Code<sup>TM</sup> it's much harder to spot and debug.
 
-_"I won't have to worry about this if I'm using a read-write lock, right? Since those are suppose to be able to give out many locks to concurrent readers."_
+_"I won't have to worry about this if I'm using a read-write lock, right? Since those are suppose to be able to give out many read locks to concurrent threads."_
 
-Surprisingly no, even reacquiring a read lock on a read-write lock twice in the same thread can produce a deadlock. To borrow a diagram from the standard library RwLock docs:
+Surprisingly no, even reacquiring a read lock on a read-write lock twice in the same thread can produce a deadlock. To borrow a diagram from the standard library `RwLock` docs:
 
 ```
 // Thread 1             |  // Thread 2
@@ -1088,7 +1084,7 @@ let _rg = lock.read();  |
 let _rg = lock.read();  |
 ```
 
-And to quote the RwLock docs from the `parking_lot` crate:
+And to quote the `RwLock` docs from the `parking_lot` crate:
 
 > This lock uses a task-fair locking policy which avoids both reader and writer starvation. This means that readers trying to acquire the lock will block even if the lock is unlocked when there are writers waiting to acquire the lock. Because of this, attempts to recursively acquire a read lock within a single thread may result in a deadlock.
 
@@ -1115,7 +1111,8 @@ Doing this allows you to disregard all the gotchas we covered in 1-3, since lock
 
 Doing this also allows you to disregard all the gotchas we covered in 1-3, since channels cannot deadlock. I'm not well-read enough on this subject to comment on whether using channels for everything can degrade or improve the performance of a concurrent program vs using locks. I imagine the answer, like the answer to most computer science questions, is _"it depends."_
 
-This approach is also sometimes called the "actor pattern" and if you search for "actor" on cargo you'll find a lot of actor framework crates that supposedly help with structuring your program to follow this pattern.
+> [!TIP]
+> This approach is also sometimes called the "actor pattern" and if you search for "actor" on cargo you'll find a lot of actor framework crates that supposedly help with structuring your program to follow this pattern.
 
 Anyway, that was long detour. Let's get back to our chat server.
 
@@ -1404,7 +1401,7 @@ async fn handle_user(
 }
 ```
 
-Demo:
+Now we can start pizza parties:
 
 ```console
 $ just chat
@@ -1480,7 +1477,7 @@ async fn handle_user(
 }
 ```
 
-Demo:
+Now everyone is invited to our pizza parties:
 
 ```console
 $ just chat
@@ -1656,7 +1653,7 @@ async fn handle_user(
 }
 ```
 
-Demo:
+Now we can find our friends within rooms:
 
 ```
 $ just chat
@@ -1688,7 +1685,7 @@ The fastest code is the code that never runs. If we don't have to allocate somet
 
 #### `String` -> `CompactString`
 
-We have a lot of short strings. We can have thousands of users and hundreds of rooms on the server and user names and room names are both almost always shorter than 24 characters. Instead of storing them as `String`s we can store them as `CompactString`s. `String`s always store their data on the heap, but `CompactString`s will store strings shorter than 24 bytes on the stack, and will only heap allocate the string if it's longer than 24 bytes. If we enforce a maximum length of 24 bytes for user and room names then we can guarantee we'll never have to perform any heap allocations for them.
+We have a lot of short strings. We can have thousands of users and hundreds of rooms on the server and user names and room names are both almost always shorter than 24 characters. Instead of storing them as `String`s we can store them as `CompactString`s. `String`s always store their data on the heap, but `CompactString`s will store strings shorter than 24 bytes on the stack, and will only heap allocate the string if it's longer than 24 bytes. If we enforce a maximum length of 24 ASCII characters for user and room names then we can guarantee we'll never have to perform any heap allocations for them.
 
 #### `Sender<String>` -> `Sender<Arc<str>>`
 
@@ -1696,7 +1693,7 @@ As you may remember, when we `send` something to a broadcast channel every call 
 
 #### Miscellanous micro optimizations
 
-After combing through the code I found a couple places where we were carelessly allocating unnecessary `Vec`s and `String`s, mostly for the `/rooms` and `/users` commands, and made them both only allocate a single `String` when producing a response.
+After combing through the code I found a couple places where we were carelessly allocating unnecessary `Vec`s and `String`s, mostly for the `/rooms` and `/users` commands, and made them both only allocate a single `String` when generating a response.
 
 ### Reducing lock contention
 
@@ -1738,7 +1735,7 @@ We store rooms in a `RwLock<HashMap<String, Room>>` but for the same reasons men
 
 There's a big issue in our random name generation. It's a [Birthday Problem](https://en.wikipedia.org/wiki/Birthday_problem) just in different clothes. Even if we have 600 unique adjectives and 250 unique animals and we can generate 150k unique names using those, we'd expect the probability of a collision in the first 1k generated names to be very low, right? Unfortunately no, after generating just 460 names there's already a >50% chance that there will be a collision, and after generating just 1k names the probability of a collision is >96%. More collisions means more time threads will spend fighting to find a unique name for every user that joins the server as the number of active users on the server climbs.
 
-Anyway, I refactored the name generation to iterate through all possible name combinations in a pseudo-random fashion, so the generated names still appear random but now we can guarantee that for 600 unique adjectives and 250 unique animals that we will generate 150k unique names in a row without any collisions.
+I refactored the name generation to iterate through all possible name combinations in a pseudo-random fashion, so the generated names still appear random but now we can guarantee that for 600 unique adjectives and 250 unique animals that we will generate 150k unique names in a row without any collisions.
 
 #### System allocator -> jemalloc
 
@@ -1808,7 +1805,7 @@ fn parse_socket_addr() -> SocketAddr {
 }
 ```
 
-For error handling, there's a bunch of little mundane things that we neglected, none of which are particularly interesting to write about.
+For error handling there's a bunch of little mundane things that we neglected, none of which are particularly interesting to write about.
 
 You can see the full source code with all logging and error handling [here](https://github.com/pretzelhammer/chat-server/blob/main/examples/server-18.rs). To see a diff against the previous version of the code run `just diff 17 18`.
 
