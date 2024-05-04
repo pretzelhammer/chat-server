@@ -182,7 +182,7 @@ We just had to add another `loop` around our `server.accept()` line! Pretty easy
 
 ## 03\) Modifying messages
 
-As exciting as an echo server is, it would be even more exciting if it modified messages somehow. So how about we try adding a ❤️ emoji at the end of every echoed line? Here's what that would look like:
+As exciting as an echo server is, it would be even more exciting if it modified messages somehow. So how about we try adding a ❤️ emoji at the end of every echoed line? Here's what that would look like:t
 
 ```rust
 use tokio::{io::{AsyncReadExt, AsyncWriteExt}, net::TcpListener};
@@ -315,7 +315,7 @@ this is a really really really long message kinda ❤️
 
 ## 05\) Adding `/help` & `/quit` server commands
 
-Telnet is annoying to quit. The usual tricks of `esc`, `^C`, and `^D` don't work. We have to `^]` (control + right square bracket) to enter "command mode" and then type `quit`. Oof.
+Telnet is annoying to quit. The usual tricks of `esc`, `^C`, and `^D` don't work. We have to type `^]` to enter command mode and then type `quit` + ENTER. Oof.
 
 We can make our server more user-friendly by implementing our own commands, so let's start with `/help` and `/quit`. `/help` will print out a list and description of all the commands our server supports and `/quit` will cause the server to close the connection (which will also cause telnet to quit).
 
@@ -452,9 +452,10 @@ async fn handle_user(mut tcp: TcpStream, tx: Sender<String>) -> anyhow::Result<(
 }
 ```
 
-The code is starting to get long and finding the new stuff in the updated examples is starting to get difficult. For all following examples I will only present a heavily abbreviated diff highlighting the key changes, but you can still find the full source code for any example in [this directory](https://github.com/pretzelhammer/chat-server/tree/main/examples) of [this repository](https://github.com/pretzelhammer/chat-server). You can also see a diff between any two examples by running `just diff {num} {num}`. For instance, to see the diff between this example and the previous example you would run `just diff 06 07`.
+> [!NOTE]
+> The code is starting to get long and difficult to parse. For all following examples I will only present an abbreviated diff highlighting the key changes, but you can still find the full source code for any example in [this directory](https://github.com/pretzelhammer/chat-server/tree/main/examples) of [this repository](https://github.com/pretzelhammer/chat-server). You can see a diff between any two examples by running `just diff {num} {num}`. For instance, to see the diff between this example and the previous example you would run `just diff 06 07`.
 
-Anyway, as promised, the heavily abbreviated key changes:
+Anyway, as promised, the key changes:
 
 ```rust
 async fn main() -> anyhow::Result<()> {
