@@ -10,7 +10,6 @@ _19 May 2024 · #rust · #async · #concurrency · #tokio · #tutorial_
 <details>
 <summary><b>Table of contents</b></summary>
 
-
 [Introduction](#introduction)<br>
 [01\) Simplest possible echo server](#01-simplest-possible-echo-server)<br>
 [02\) Handling multiple connections serially](#02-handling-multiple-connections-serially)<br>
@@ -34,12 +33,14 @@ _19 May 2024 · #rust · #async · #concurrency · #tokio · #tutorial_
 [Discuss](#discuss)<br>
 [Further reading](#further-reading)<br>
 
-
 </details>
 
 ## Introduction
 
-I recently finished coding a multithreaded chat server using Tokio and I'm pretty happy with it. I'd like to share what I learned in this easy-to-follow step-by-step tutorial-style article. All of the code can found in [this repository](https://github.com/pretzelhammer/chat-server). Let's get into it.
+I recently finished coding a multithreaded chat server using Tokio and I'm pretty happy with it. I'd like to share what I learned in this easy-to-follow step-by-step tutorial-style article. Let's get into it.
+
+> [!NOTE]
+> The full source code for every step can be found in [this repository](https://github.com/pretzelhammer/chat-server).
 
 ## 01\) Simplest possible echo server
 
@@ -116,9 +117,9 @@ let server = TcpListener::bind("127.0.0.1:42069").await?;
 ```
 
 > [!IMPORTANT]
-> This is `tokio::net::TcpListener` and not `std::net::TcpListener`. The former is async and the latter is sync. Also calling `bind` returns a `Future` to `await` for anything to happen because futures are lazy in Rust!
+> This is `tokio::net::TcpListener` and not `std::net::TcpListener`. The former is async and the latter is sync. Also calling `bind` returns a `Future` which we **must** `await` for anything to happen because futures are lazy in Rust!
 
-As a general rule of thumb, if there's a type defined both in `tokio` and `std` we usually want to use the one defined in `tokio`.
+As a general rule of thumb, if there's a type that handles IO by the same name defined in both `tokio` and `std` we want to use the one defined in `tokio`.
 
 The rest of the code should hopefully be straight-forward:
 
@@ -146,13 +147,16 @@ my first e c h o server!
 hooray!
 ```
 
-Some of you may be thinking, _"I'd like to mess around with the code but I don't want to go through the hassle of setting up a new cargo project and then copying and pasting all of the examples from this article into it."_ You don't have to! Just `git clone` [this repository](https://github.com/pretzelhammer/chat-server) and you'll be able to quickly run any example with `just example {number}`. Then you can tinker with the source code at `examples/server-{number}.rs` to your heart's content. Once an example is running you can interact with it by running `just telnet`.
+> [!TIP]
+> To quit `telnet` type `^]` (control + right square bracket) to enter command mode and type "quit" + ENTER.
+
+If you'd like to mess around with the code yourself just `git clone` [this repository](https://github.com/pretzelhammer/chat-server) and you'll be able to quickly run any example with `just example {number}`. Then you can tinker with the source code at `examples/server-{number}.rs` to your heart's content. Once an example is running you can interact with it by running `just telnet`.
 
 ## 02\) Handling multiple connections serially
 
 There's an annoying bug in our server: it quits after handling just one connection! If we try to `just telnet` more than once we get `telnet: Unable to connect to remote host: Connection refused` at which point we have to manually restart the server with `just example 01` again. Oof.
 
-If you're interested, this would be a good opportunity to take a stab at solving this problem (or any of the future problems presented in this article) on your own. But if not, that's fine too of course, here's the solution:
+Here's how we would fix it:
 
 ```rust
 use tokio::{io::{AsyncReadExt, AsyncWriteExt}, net::TcpListener};
