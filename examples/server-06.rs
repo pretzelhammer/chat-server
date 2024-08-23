@@ -2,7 +2,7 @@ use futures::{SinkExt, StreamExt};
 use tokio::net::{TcpListener, TcpStream};
 use tokio_util::codec::{FramedRead, FramedWrite, LinesCodec};
 
-const HELP_MSG: &str = include_str!("help-01.txt");
+const HELP_MSG: &str = include_str!("shared/help-01.txt");
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
