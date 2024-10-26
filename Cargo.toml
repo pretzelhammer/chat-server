@@ -22,9 +22,9 @@ tracing-appender = "0.2.3"
 fastrand = "2.0.1"
 dashmap = "5.5.3"
 anyhow = "1.0.82"
-ratatui = "0.28.0"
+ratatui = "0.27.0"
 crossterm = { version = "0.27.0", features = ["event-stream"] }
-tui-textarea = "0.4.0"
+tui-textarea = "0.5.0"
 textwrap = "0.16"
 compact_str = "0.7.1"
 clap = { version = "4.5.4", features = ["derive"] }

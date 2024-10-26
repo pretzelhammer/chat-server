@@ -126,6 +126,7 @@ async fn handle_user(
                     let changed_name = names.insert(new_name.clone());
                     if changed_name {
                         b!(room_tx.send(format!("{name} is now {new_name}")));
+                        names.remove(&name);
                         name = new_name;
                     } else {
                         b!(sink.send(format!("{new_name} is already taken")).await);
